@@ -7,4 +7,4 @@
 
 ### Section: 01
 
-### Dates and Times: TueThu 3:00 - 4:15
+### Dates and Times: TueThu 1500 - 1615
