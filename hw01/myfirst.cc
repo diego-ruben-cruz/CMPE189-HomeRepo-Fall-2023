@@ -51,7 +51,7 @@ main(int argc, char* argv[])
     // pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps")); // Commented out during chp06
     // pointToPoint.SetChannelAttribute("Delay", StringValue("2ms")); // Commented out during chp06
 
-    // The next exercise entails setting the UdpEchoClient Attribute MaxPackets to some other value 
+    // In chp06, one exercise entails setting the UdpEchoClient Attribute MaxPackets to some other value 
     /*
         ./ns3 run "scratch/myfirst
         --ns3::PointToPointNetDevice::DataRate=5Mbps

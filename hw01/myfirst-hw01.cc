@@ -33,19 +33,40 @@ NS_LOG_COMPONENT_DEFINE("FirstScriptExample");
 int
 main(int argc, char* argv[])
 {
-    CommandLine cmd(__FILE__);
+    uint32_t nPackets = 1;
+
+    CommandLine cmd;
+    cmd.AddValue("nPackets", "Number of packets to echo", nPackets);
     cmd.Parse(argc, argv);
 
     Time::SetResolution(Time::NS);
     LogComponentEnable("UdpEchoClientApplication", LOG_LEVEL_INFO);
     LogComponentEnable("UdpEchoServerApplication", LOG_LEVEL_INFO);
+    NS_LOG_INFO("Creating Topology"); // new line added in chp06, useful for adding comments on logs for specific phases of the code
 
     NodeContainer nodes;
     nodes.Create(2);
 
     PointToPointHelper pointToPoint;
-    pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps"));
-    pointToPoint.SetChannelAttribute("Delay", StringValue("2ms"));
+    // pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps")); // Commented out during chp06
+    // pointToPoint.SetChannelAttribute("Delay", StringValue("2ms")); // Commented out during chp06
+
+    // In chp06, one exercise entails setting the UdpEchoClient Attribute MaxPackets to some other value 
+    /*
+        ./ns3 run "scratch/myfirst
+        --ns3::PointToPointNetDevice::DataRate=5Mbps
+        --ns3::PointToPointChannel::Delay=2ms
+        --ns3::UdpEchoClient::MaxPackets=2"
+    */
+
+    // For the sake of simplicity, here is the cmd structure for changing data rate and packet size as per task02 LP2    
+    /*
+        ./ns3 run "scratch/myfirst
+        --ns3::PointToPointNetDevice::DataRate=1Mbps
+        --ns3::PointToPointChannel::Delay=1ms
+        --ns3::UdpEchoClient::MaxPackets=1
+        --ns3::UdpEchoClient::PacketSize=1024"
+    */
 
     NetDeviceContainer devices;
     devices = pointToPoint.Install(nodes);
@@ -62,16 +83,20 @@ main(int argc, char* argv[])
 
     ApplicationContainer serverApps = echoServer.Install(nodes.Get(1));
     serverApps.Start(Seconds(1.0));
-    serverApps.Stop(Seconds(10.0));
+    serverApps.Stop(Seconds(60.0)); // Changed the value here to get the response to client hello
 
     UdpEchoClientHelper echoClient(interfaces.GetAddress(1), 9);
-    echoClient.SetAttribute("MaxPackets", UintegerValue(1));
+    echoClient.SetAttribute("MaxPackets", UintegerValue(nPackets));
     echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0)));
-    echoClient.SetAttribute("PacketSize", UintegerValue(1024));
+    // echoClient.SetAttribute("PacketSize", UintegerValue(1024));
 
     ApplicationContainer clientApps = echoClient.Install(nodes.Get(0));
     clientApps.Start(Seconds(2.0));
-    clientApps.Stop(Seconds(10.0));
+    clientApps.Stop(Seconds(60.0)); // Changed the value here to get the response to client hello
+
+    AsciiTraceHelper ascii;
+    pointToPoint.EnableAsciiAll(ascii.CreateFileStream("myfirst.tr"));
+    pointToPoint.EnablePcapAll("myfirst");
 
     Simulator::Run();
     Simulator::Destroy();
