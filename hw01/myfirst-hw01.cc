@@ -30,8 +30,7 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("FirstScriptExample");
 
-int
-main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     uint32_t nPackets = 1;
 
@@ -51,7 +50,7 @@ main(int argc, char* argv[])
     // pointToPoint.SetDeviceAttribute("DataRate", StringValue("5Mbps")); // Commented out during chp06
     // pointToPoint.SetChannelAttribute("Delay", StringValue("2ms")); // Commented out during chp06
 
-    // In chp06, one exercise entails setting the UdpEchoClient Attribute MaxPackets to some other value 
+    // In chp06, one exercise entails setting the UdpEchoClient Attribute MaxPackets to some other value
     /*
         ./ns3 run "scratch/myfirst
         --ns3::PointToPointNetDevice::DataRate=5Mbps
@@ -59,7 +58,7 @@ main(int argc, char* argv[])
         --ns3::UdpEchoClient::MaxPackets=2"
     */
 
-    // For the sake of simplicity, here is the cmd structure for changing data rate and packet size as per task02 LP2    
+    // For the sake of simplicity, here is the cmd structure for changing data rate and packet size as per task02 LP2
     /*
         ./ns3 run "scratch/myfirst
         --ns3::PointToPointNetDevice::DataRate=1Mbps
