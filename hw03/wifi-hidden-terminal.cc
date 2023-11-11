@@ -46,14 +46,7 @@
 
 using namespace ns3;
 
-// For the sake of simplicity, here is the cmd structure for changing data rate and packet size as per task02 LP2
-    /*
-        ./ns3 run "scratch/wifi-hidden-terminal
-        --ns3::PointToPointNetDevice::DataRate=1Mbps
-        --ns3::PointToPointChannel::Delay=1ms
-        --ns3::UdpEchoClient::MaxPackets=1
-        --ns3::UdpEchoClient::PacketSize=1024"
-    */
+// ./ns3 run "scratch/wifi-hidden-terminal"
 
 /**
  * Run single 10 seconds experiment
@@ -61,8 +54,7 @@ using namespace ns3;
  * \param enableCtsRts if true, enable RTS/CTS for packets larger than 100 bytes.
  * \param wifiManager WiFi manager to use.
  */
-void
-experiment(bool enableCtsRts, std::string wifiManager)
+void experiment(bool enableCtsRts, std::string wifiManager)
 {
     // 0. Enable or disable CTS/RTS
     UintegerValue ctsThr = (enableCtsRts ? UintegerValue(100) : UintegerValue(2200));
@@ -80,7 +72,9 @@ experiment(bool enableCtsRts, std::string wifiManager)
 
     // 3. Create propagation loss matrix
     Ptr<MatrixPropagationLossModel> lossModel = CreateObject<MatrixPropagationLossModel>();
-    lossModel->SetDefaultLoss(200); // set default loss to 200 dB (no link)
+    // lossModel->SetDefaultLoss(200); // set default loss to 200 dB (no link)
+    lossModel->SetDefaultLoss(50); // set default loss to 50 as per hw03 instructions
+
     lossModel->SetLoss(nodes.Get(0)->GetObject<MobilityModel>(),
                        nodes.Get(1)->GetObject<MobilityModel>(),
                        50); // set symmetric loss 0 <-> 1 to 50 dB
@@ -202,8 +196,7 @@ experiment(bool enableCtsRts, std::string wifiManager)
     Simulator::Destroy();
 }
 
-int
-main(int argc, char** argv)
+int main(int argc, char **argv)
 {
     std::string wifiManager("Arf");
     CommandLine cmd(__FILE__);
@@ -213,7 +206,8 @@ main(int argc, char** argv)
         wifiManager);
     cmd.Parse(argc, argv);
 
-    std::cout << "Hidden station experiment with RTS/CTS disabled:\n" << std::flush;
+    std::cout << "Hidden station experiment with RTS/CTS disabled:\n"
+              << std::flush;
     experiment(false, wifiManager);
     std::cout << "------------------------------------------------\n";
     std::cout << "Hidden station experiment with RTS/CTS enabled:\n";
