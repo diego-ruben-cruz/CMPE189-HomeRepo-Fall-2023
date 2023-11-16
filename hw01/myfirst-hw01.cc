@@ -59,13 +59,7 @@ int main(int argc, char *argv[])
     */
 
     // For the sake of simplicity, here is the cmd structure for changing data rate and packet size as per task02 LP2
-    /*
-        ./ns3 run "scratch/myfirst
-        --ns3::PointToPointNetDevice::DataRate=1Mbps
-        --ns3::PointToPointChannel::Delay=1ms
-        --ns3::UdpEchoClient::MaxPackets=1
-        --ns3::UdpEchoClient::PacketSize=1024"
-    */
+    //  ./ns3 run "scratch/myfirst --ns3::PointToPointNetDevice::DataRate=1Mbps --ns3::PointToPointChannel::Delay=1ms --ns3::UdpEchoClient::MaxPackets=1 --ns3::UdpEchoClient::PacketSize=1024"
 
     NetDeviceContainer devices;
     devices = pointToPoint.Install(nodes);
