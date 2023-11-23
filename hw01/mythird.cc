@@ -38,8 +38,14 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("ThirdScriptExample");
 
-int
-main(int argc, char* argv[])
+// Added during chp07
+void CourseChange(std::string context, Ptr<const MobilityModel> model)
+{
+    Vector position = model->GetPosition();
+    NS_LOG_UNCOND(context << " x = " << position.x << ", y = " << position.y);
+}
+
+int main(int argc, char *argv[])
 {
     bool verbose = true;
     uint32_t nCsma = 3;
@@ -181,6 +187,13 @@ main(int argc, char* argv[])
         phy.EnablePcap("third", apDevices.Get(0));
         csma.EnablePcap("third", csmaDevices.Get(0), true);
     }
+
+    // Added during chp07
+    std::ostringstream oss;
+    oss << "/NodeList/" << wifiStaNodes.Get(nWifi - 1)->GetId()
+        << "/$ns3::MobilityModel/CourseChange";
+
+    Config::Connect(oss.str(), MakeCallback(&CourseChange));
 
     Simulator::Run();
     Simulator::Destroy();

@@ -29,12 +29,18 @@
 //                    ================
 //                      LAN 10.1.2.0
 
+/*
+    Typical command to run the program,
+    see that the nCsma devices can be modified as shown in chp07
+
+    ./ns3 run "scratch/mysecond --nCsma=100"
+*/
+
 using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE("SecondScriptExample");
 
-int
-main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
     bool verbose = true;
     uint32_t nCsma = 3;
@@ -104,8 +110,13 @@ main(int argc, char* argv[])
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
-    pointToPoint.EnablePcapAll("second");
-    csma.EnablePcap("second", csmaDevices.Get(1), true);
+    // Abridged during chp07 to leave the end result as shown below
+    // pointToPoint.EnablePcapAll("second");
+    // csma.EnablePcap("second", csmaDevices.Get(nCsma), true);
+    // csma.EnablePcap("second", csmaDevices.Get(nCsma - 1), false);
+    pointToPoint.EnablePcap("second", p2pNodes.Get(0)->GetId(), 0);
+    csma.EnablePcap("second", csmaNodes.Get(nCsma)->GetId(), 0, false);
+    csma.EnablePcap("second", csmaNodes.Get(nCsma - 1)->GetId(), 0, false);
 
     Simulator::Run();
     Simulator::Destroy();
