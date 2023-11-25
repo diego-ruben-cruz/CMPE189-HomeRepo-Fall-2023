@@ -37,7 +37,7 @@
 
 /*
     To run this code, use the following cmd:
-    ./ns3 run 'scratch/mythird-hw01 --tracing=1'
+    ./ns3 run 'scratch/mythird-hw01 --tracing=0'
 */
 
 using namespace ns3;
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
     UdpEchoServerHelper echoServer(9);
 
     // Install the echo server into one of the mobile wifi stations, the last node in this case
-    ApplicationContainer serverApps = echoServer.Install(wifiStaNodes.Get(nWifi - 2));
+    ApplicationContainer serverApps = echoServer.Install(wifiStaNodes.Get(nWifi - 1));
     serverApps.Start(Seconds(1.0));
     serverApps.Stop(Seconds(10.0));
 
