@@ -94,19 +94,40 @@ int main(int argc, char *argv[])
     csmaInterfaces = address.Assign(csmaDevices);
 
     UdpEchoServerHelper echoServer(9);
+    UdpEchoServerHelper echoServer2(10); // Create Another echo server as per task02 hp01
 
     ApplicationContainer serverApps = echoServer.Install(csmaNodes.Get(nCsma));
     serverApps.Start(Seconds(1.0));
     serverApps.Stop(Seconds(10.0));
+
+    // Create duplicate server app at rightmost node as per task02 hp01
+    // nCsma gets the total number of the csma nodes, which points at the rightmost node, refer to
+    // Doxygen
+    ApplicationContainer serverApps2 = echoServer2.Install(csmaNodes.Get(nCsma));
+    serverApps2.Start(Seconds(1.5));
+    serverApps2.Stop(Seconds(10.0));
 
     UdpEchoClientHelper echoClient(csmaInterfaces.GetAddress(nCsma), 9);
     echoClient.SetAttribute("MaxPackets", UintegerValue(1));
     echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     echoClient.SetAttribute("PacketSize", UintegerValue(1024));
 
+    // Make a duplicate echo client as per task02 hp01
+    // Note that 9 is the port number, not the number corresponding to the node, refer to Doxygen
+    UdpEchoClientHelper echoClient2(csmaInterfaces.GetAddress(nCsma), 9);
+    echoClient2.SetAttribute("MaxPackets", UintegerValue(1));
+    echoClient2.SetAttribute("Interval", TimeValue(Seconds(1.0)));
+    echoClient2.SetAttribute("PacketSize", UintegerValue(1024));
+
     ApplicationContainer clientApps = echoClient.Install(p2pNodes.Get(0));
     clientApps.Start(Seconds(2.0));
     clientApps.Stop(Seconds(10.0));
+
+    // Make a duplicate app container for the second app to run
+    // 0 at the following line refers to the leftmost node p2p node, refer to Doxygen
+    ApplicationContainer clientApps2 = echoClient2.Install(p2pNodes.Get(0));
+    clientApps2.Start(Seconds(2.5)); // To ensure that it starts after the first app
+    clientApps2.Stop(Seconds(10.0));
 
     Ipv4GlobalRoutingHelper::PopulateRoutingTables();
 
