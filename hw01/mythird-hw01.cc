@@ -36,8 +36,11 @@
 //                                     LAN 10.1.2.0
 
 /*
-    To run this code, use the following cmd:
+    To run this code without pcap tracing, use the following cmd:
     ./ns3 run 'scratch/mythird-hw01 --tracing=0'
+
+    For the second bit of task02 hp02
+    ./ns3 run 'scratch/mythird-hw01 --tracing=0 --nWifi=13'
 */
 
 using namespace ns3;
@@ -164,17 +167,18 @@ int main(int argc, char *argv[])
     csmaInterfaces = address.Assign(csmaDevices);
 
     address.SetBase("10.1.3.0", "255.255.255.0");
-    address.Assign(staDevices);
+    Ipv4InterfaceContainer staInterfaces; // Useful to retrieve the address of the
+    staInterfaces = address.Assign(staDevices);
     address.Assign(apDevices);
 
     UdpEchoServerHelper echoServer(9);
 
-    // Install the echo server into one of the mobile wifi stations, the last node in this case
-    ApplicationContainer serverApps = echoServer.Install(wifiStaNodes.Get(nWifi - 1));
+    // Install the echo server into one of the mobile wifi stations
+    ApplicationContainer serverApps = echoServer.Install(wifiStaNodes.Get(nWifi - 2));
     serverApps.Start(Seconds(1.0));
     serverApps.Stop(Seconds(10.0));
 
-    UdpEchoClientHelper echoClient(csmaInterfaces.GetAddress(nCsma), 9);
+    UdpEchoClientHelper echoClient(staInterfaces.GetAddress(nWifi - 2), 9);
     echoClient.SetAttribute("MaxPackets", UintegerValue(1));
     echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     echoClient.SetAttribute("PacketSize", UintegerValue(1024));
@@ -199,58 +203,44 @@ int main(int argc, char *argv[])
         csma.EnablePcap("third", csmaDevices.Get(0), true);
     }
 
-    // // Added during chp07
-    // std::ostringstream echoClientOSS;
-    // echoClientOSS << "/NodeList/" << wifiStaNodes.Get(nWifi - 1)->GetId()
-    //               << "/$ns3::MobilityModel/CourseChange";
+    // Added during chp07
+    std::ostringstream echoClientOSS;
+    echoClientOSS << "/NodeList/" << wifiStaNodes.Get(nWifi - 1)->GetId()
+                  << "/$ns3::MobilityModel/CourseChange";
 
-    // Config::Connect(echoClientOSS.str(), MakeCallback(&CourseChange));
+    Config::Connect(echoClientOSS.str(), MakeCallback(&CourseChange));
 
-    // std::ostringstream echoServerOSS;
-    // echoServerOSS << "/NodeList/" << wifiStaNodes.Get(nWifi - 2)->GetId()
-    //               << "/$ns3::MobilityModel/CourseChange";
+    std::ostringstream echoServerOSS;
+    echoServerOSS << "/NodeList/" << wifiStaNodes.Get(nWifi - 2)->GetId()
+                  << "/$ns3::MobilityModel/CourseChange";
 
-    // Config::Connect(echoServerOSS.str(), MakeCallback(&CourseChange));
+    Config::Connect(echoServerOSS.str(), MakeCallback(&CourseChange));
 
     Simulator::Run();
 
-    // /* Reading from the flow monitor */
-    // monitor->CheckForLostPackets();
+    /* Reading from the flow monitor */
+    monitor->CheckForLostPackets();
 
-    // Ptr<Ipv4FlowClassifier> classifier =
-    // DynamicCast<Ipv4FlowClassifier>(flowmon.GetClassifier()); std::map<FlowId,
-    // FlowMonitor::FlowStats> stats = monitor->GetFlowStats();
+    Ptr<Ipv4FlowClassifier> classifier = DynamicCast<Ipv4FlowClassifier>(flowmon.GetClassifier());
+    std::map<FlowId, FlowMonitor::FlowStats> stats = monitor->GetFlowStats();
 
-    // for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
-    //      i != stats.end();
-    //      ++i)
-    // {
-    //     Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
-
-    //     // Forward flow (from client to server)
-    //     std::cout << "Flow " << i->first << " Client2Server: " << t.sourceAddress << " -> "
-    //               << t.destinationAddress << "\n";
-    //     std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
-    //     std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
-    //     std::cout << "  Forward Throughput: "
-    //               << i->second.rxBytes * 8.0 /
-    //                      (i->second.timeLastRxPacket.GetSeconds() -
-    //                       i->second.timeFirstTxPacket.GetSeconds()) /
-    //                      1000 / 1000
-    //               << " Mbps\n";
-
-    //     // Reverse flow (from server to client)
-    //     std::cout << "Flow " << i->first << " Server2Client: " << t.destinationAddress << " -> "
-    //               << t.sourceAddress << "\n";
-    //     std::cout << "  Tx Bytes:   " << i->second.rxBytes << "\n";
-    //     std::cout << "  Rx Bytes:   " << i->second.txBytes << "\n";
-    //     std::cout << "  Reverse Throughput: "
-    //               << i->second.rxBytes * 8.0 /
-    //                      (i->second.timeLastRxPacket.GetSeconds() -
-    //                       i->second.timeFirstTxPacket.GetSeconds()) /
-    //                      1000 / 1000
-    //               << " Mbps\n";
-    // }
+    for (std::map<FlowId, FlowMonitor::FlowStats>::const_iterator i = stats.begin();
+         i != stats.end();
+         ++i)
+    {
+        Ipv4FlowClassifier::FiveTuple t = classifier->FindFlow(i->first);
+        std::cout << "Flow " << i->first << " (" << t.sourceAddress << " -> "
+                  << t.destinationAddress << ")\n";
+        std::cout << "  Tx Packets: " << i->second.txPackets << "\n";
+        std::cout << "  Tx Bytes:   " << i->second.txBytes << "\n";
+        std::cout << "  Rx Bytes:   " << i->second.rxBytes << "\n";
+        std::cout << "  Throughput: "
+                  << i->second.rxBytes * 8.0 /
+                         (i->second.timeLastRxPacket.GetSeconds() -
+                          i->second.timeFirstTxPacket.GetSeconds()) /
+                         1000 / 1000
+                  << " Mbps\n";
+    }
 
     Simulator::Destroy();
     return 0;
