@@ -3,13 +3,13 @@
  *
  */
 
-#include "ns3/propagation-loss-model.h"
 #include "ns3/applications-module.h"
 #include "ns3/core-module.h"
 #include "ns3/internet-module.h"
+#include "ns3/mobility-module.h"
 #include "ns3/network-module.h"
 #include "ns3/point-to-point-module.h"
-#include "ns3/mobility-module.h"
+#include "ns3/propagation-loss-model.h"
 
 using namespace ns3;
 
@@ -38,28 +38,33 @@ private:
 // Making implementation for the previously-created class, still using propagation-loss-model.cc
 NS_OBJECT_ENSURE_REGISTERED(LogNormalShadowingModel);
 
-TypeId LogNormalShadowingModel::GetTypeId()
+TypeId
+LogNormalShadowingModel::GetTypeId()
 {
-    static TypeId tid = TypeId("LogNormalShadowingModel")
-                            .SetParent<PropagationLossModel>()
-                            .SetGroupName("Propagation")
-                            .AddConstructor<LogNormalShadowingModel>()
-                            .AddAttribute("Exponent",
-                                          "The exponent of the Path loss propagation model",
-                                          DoubleValue(2.8),
-                                          MakeDoubleAccessor(&LogNormalShadowingModel::m_pathLossExponent),
-                                          MakeDoubleChecker<double>())
-                            .AddAttribute("Noise Variance", "The random variable to represent noise",
-                                          DoubleValue(4),
-                                          MakeDoubleAccessor(&LogNormalShadowingModel::m_noiseVariance),
-                                          MakeDoubleChecker<double>());
+    static TypeId tid =
+        TypeId("LogNormalShadowingModel")
+            .SetParent<PropagationLossModel>()
+            .SetGroupName("Propagation")
+            .AddConstructor<LogNormalShadowingModel>()
+            .AddAttribute("Exponent",
+                          "The exponent of the Path loss propagation model",
+                          DoubleValue(2.8),
+                          MakeDoubleAccessor(&LogNormalShadowingModel::m_pathLossExponent),
+                          MakeDoubleChecker<double>())
+            .AddAttribute("Noise Variance",
+                          "The random variable to represent noise",
+                          DoubleValue(4),
+                          MakeDoubleAccessor(&LogNormalShadowingModel::m_noiseVariance),
+                          MakeDoubleChecker<double>());
     return tid;
 }
 
-double LogNormalShadowingModel::GetLoss(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b)
+double
+LogNormalShadowingModel::GetLoss(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b)
 {
     // Create LogDistancePropagationLossModel internally, to later add the Gauss random var
-    Ptr<LogDistancePropagationLossModel> logDistLoss = CreateObject<LogDistancePropagationLossModel>();
+    Ptr<LogDistancePropagationLossModel> logDistLoss =
+        CreateObject<LogDistancePropagationLossModel>();
     logDistLoss->SetPathLossExponent(m_pathLossExponent);
 
     // Calculate path loss thru the conventional method
@@ -76,7 +81,9 @@ double LogNormalShadowingModel::GetLoss(double txPowerDbm, Ptr<MobilityModel> a,
 
     return totalLoss;
 }
-Ptr<PropagationLossModel> LogNormalShadowingModel::Copy() const
+
+Ptr<PropagationLossModel>
+LogNormalShadowingModel::Copy() const
 {
     return CreateObject<LogNormalShadowingModel>(*this);
 }
@@ -91,78 +98,48 @@ void LogNormalShadowingModel::SetNoiseVariance(double variance)
     m_noiseVariance = variance;
 }
 
-// This is where the simulator will be run with proper cmdline args, consider incomplete
-// ...
-
 int main(int argc, char *argv[])
 {
-    // Borrowed some lines from mythird-hw01.cc and myfirst.cc
-    uint32_t nPackets = 1;
-    double_t lossExp = 2.5;
-    double_t noiseVar = 2;
+    // borrowing some lines from mythird-hw01.cc
+    double lossExp = 2.8;
+    double noiseVar = 4;
 
     CommandLine cmd(__FILE__);
-    cmd.AddValue("nPackets", "Number of packets to echo", nPackets);
     cmd.AddValue("lossExp", "The loss exponent", lossExp);
     cmd.AddValue("noiseVar", "The random variable for the noise", noiseVar);
+
     cmd.Parse(argc, argv);
 
-    Time::SetResolution(Time::NS);
-    LogComponentEnable("UdpEchoClientApplication", LOG_LEVEL_INFO);
-    LogComponentEnable("UdpEchoServerApplication", LOG_LEVEL_INFO);
-    NS_LOG_INFO("Creating Topology"); // new line added in chp06, useful for adding comments on logs for specific phases of the code
-
+    // Create nodes
     NodeContainer nodes;
     nodes.Create(2);
 
+    // Set fixed positions for the nodes
+    Ptr<MobilityModel> mobilityA = CreateObject<ConstantPositionMobilityModel>();
+    Ptr<MobilityModel> mobilityB = CreateObject<ConstantPositionMobilityModel>();
+
+    nodes.Get(0)->AggregateObject(mobilityA);
+    nodes.Get(1)->AggregateObject(mobilityB);
+
+    // Set positions
+    Vector posA(0, 0, 0);
+    Vector posB(100, 0, 0);
+
+    mobilityA->SetPosition(posA);
+    mobilityB->SetPosition(posB);
+
+    // Create point-to-point channel
     PointToPointHelper pointToPoint;
+    pointToPoint.SetDeviceAttribute("DataRate", StringValue("100Mbps"));
+    pointToPoint.SetChannelAttribute("Delay", StringValue("2ms"));
 
-    NetDeviceContainer devices;
-    devices = pointToPoint.Install(nodes);
+    NetDeviceContainer devices = pointToPoint.Install(nodes);
 
-    MobilityHelper mobility;
+    // Need to set the model here then do the path loss computing
 
-    mobility.SetPositionAllocator("ns3::GridPositionAllocator",
-                                  "MinX",
-                                  DoubleValue(0.0),
-                                  "MinY",
-                                  DoubleValue(0.0),
-                                  "DeltaX",
-                                  DoubleValue(5.0),
-                                  "DeltaY",
-                                  DoubleValue(10.0),
-                                  "GridWidth",
-                                  UintegerValue(3),
-                                  "LayoutType",
-                                  StringValue("RowFirst"));
-
-    mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-    mobility.Install(nodes);
-
-    InternetStackHelper stack;
-    stack.Install(nodes);
-
-    Ipv4AddressHelper address;
-    address.SetBase("10.1.1.0", "255.255.255.0");
-
-    Ipv4InterfaceContainer interfaces = address.Assign(devices);
-
-    UdpEchoServerHelper echoServer(9);
-
-    ApplicationContainer serverApps = echoServer.Install(nodes.Get(1));
-    serverApps.Start(Seconds(1.0));
-    serverApps.Stop(Seconds(10.0));
-
-    UdpEchoClientHelper echoClient(interfaces.GetAddress(1), 9);
-    echoClient.SetAttribute("MaxPackets", UintegerValue(nPackets));
-    echoClient.SetAttribute("Interval", TimeValue(Seconds(1.0)));
-    echoClient.SetAttribute("PacketSize", UintegerValue(1024));
-
-    ApplicationContainer clientApps = echoClient.Install(nodes.Get(0));
-    clientApps.Start(Seconds(2.0));
-    clientApps.Stop(Seconds(10.0));
-
+    // Run the simulation
     Simulator::Run();
     Simulator::Destroy();
+
     return 0;
 }
