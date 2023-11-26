@@ -41,101 +41,100 @@ using namespace ns3;
 
 /// Round a double number to the given precision. e.g. dround(0.234, 0.1) = 0.2
 /// and dround(0.257, 0.1) = 0.3
-static double dround (double number, double precision)
+static double dround(double number, double precision)
 {
-  number /= precision;
-  if (number >= 0)
-    {
-      number = floor (number + 0.5);
-    }
-  else
-    {
-      number = ceil (number - 0.5);
-    }
-  number *= precision;
-  return number;
+	number /= precision;
+	if (number >= 0)
+	{
+		number = floor(number + 0.5);
+	}
+	else
+	{
+		number = ceil(number - 0.5);
+	}
+	number *= precision;
+	return number;
 }
 
 static Gnuplot2dDataset
-TestProbabilistic (Ptr<PropagationLossModel> model, double distance, unsigned int samples = 1000)
+TestProbabilistic(Ptr<PropagationLossModel> model, double distance, unsigned int samples = 1000)
 {
-	Ptr<ConstantPositionMobilityModel> a = CreateObject<ConstantPositionMobilityModel> ();
-	Ptr<ConstantPositionMobilityModel> b = CreateObject<ConstantPositionMobilityModel> ();
+	Ptr<ConstantPositionMobilityModel> a = CreateObject<ConstantPositionMobilityModel>();
+	Ptr<ConstantPositionMobilityModel> b = CreateObject<ConstantPositionMobilityModel>();
 
 	double txPowerDbm = +15; // dBm
 
 	Gnuplot2dDataset dataset;
 
-	dataset.SetStyle (Gnuplot2dDataset::LINES_POINTS);
+	dataset.SetStyle(Gnuplot2dDataset::LINES_POINTS);
 
 	typedef std::map<double, unsigned int> rxPowerMapType;
 
 	// Take given number of samples from CalcRxPower() and show probability
 	// density for discrete distances.
-	a->SetPosition (Vector (0.0, 0.0, 0.0));
-	b->SetPosition (Vector (distance, 0.0, 0.0));
+	a->SetPosition(Vector(0.0, 0.0, 0.0));
+	b->SetPosition(Vector(distance, 0.0, 0.0));
 
 	rxPowerMapType rxPowerMap;
 	for (unsigned int samp = 0; samp < samples; ++samp)
-	  {
+	{
 		// CalcRxPower() returns dBm.
-		double rxPowerDbm = model->CalcRxPower (txPowerDbm, a, b);
-		
-		rxPowerDbm = dround (rxPowerDbm, 1.0);
-		rxPowerMap[ rxPowerDbm ]++;
-		
-		Simulator::Stop (Seconds (0.01));
-		Simulator::Run ();
-	  }
+		double rxPowerDbm = model->CalcRxPower(txPowerDbm, a, b);
 
-	for (rxPowerMapType::const_iterator i = rxPowerMap.begin ();
-		 i != rxPowerMap.end (); ++i)
-	  {
-		dataset.Add (i->first, (double)i->second / (double)samples);
-	  }
+		rxPowerDbm = dround(rxPowerDbm, 1.0);
+		rxPowerMap[rxPowerDbm]++;
+
+		Simulator::Stop(Seconds(0.01));
+		Simulator::Run();
+	}
+
+	for (rxPowerMapType::const_iterator i = rxPowerMap.begin();
+		 i != rxPowerMap.end(); ++i)
+	{
+		dataset.Add(i->first, (double)i->second / (double)samples);
+	}
 
 	return dataset;
 }
 
-
-int main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
-  std::ofstream plotFile ("output.plt");
-  
-  //Set the random seed value
-  RngSeedManager::SetSeed (3);  
-  
-  GnuplotCollection gnuplots ("rxPower-pdf-random.pdf");
+	CommandLine cmd;
+	cmd.Parse(argc, argv);
+	std::ofstream plotFile("output.plt");
 
-  {
-	Gnuplot plot;
-	plot.AppendExtra ("set xlabel 'rxPower (dBm)'");
-	plot.AppendExtra ("set ylabel 'Probability'");
-	plot.AppendExtra ("set key outside");
+	// Set the random seed value
+	RngSeedManager::SetSeed(3);
 
-    // Random propagation model with uniform random distribution
-	Ptr<RandomPropagationLossModel> randomProp = CreateObject<RandomPropagationLossModel> ();
-	randomProp->SetAttribute("Variable", StringValue ("ns3::UniformRandomVariable[Min=20|Max=100]"));
-	
-        for (double distance = 50.0; distance <= 200.0; distance += 50.0)
+	GnuplotCollection gnuplots("rxPower-pdf-random.pdf");
+
 	{
-		Gnuplot2dDataset dataset = TestProbabilistic (randomProp, distance);
-		//New dataset for each distance. Adds a line to the plot
-		std::ostringstream os;
-		os << "Distance : " << distance ;
-		dataset.SetTitle (os.str ());
-		plot.AddDataset(dataset);
+		Gnuplot plot;
+		plot.AppendExtra("set xlabel 'rxPower (dBm)'");
+		plot.AppendExtra("set ylabel 'Probability'");
+		plot.AppendExtra("set key outside");
+
+		// Random propagation model with uniform random distribution
+		Ptr<RandomPropagationLossModel> randomProp = CreateObject<RandomPropagationLossModel>();
+		randomProp->SetAttribute("Variable", StringValue("ns3::UniformRandomVariable[Min=20|Max=100]"));
+
+		for (double distance = 50.0; distance <= 200.0; distance += 50.0)
+		{
+			Gnuplot2dDataset dataset = TestProbabilistic(randomProp, distance);
+			// New dataset for each distance. Adds a line to the plot
+			std::ostringstream os;
+			os << "Distance : " << distance;
+			dataset.SetTitle(os.str());
+			plot.AddDataset(dataset);
+		}
+
+		plot.SetTitle("RandomPropagationLossModel");
+		gnuplots.AddPlot(plot);
 	}
-	
-    plot.SetTitle ("RandomPropagationLossModel");
-    gnuplots.AddPlot (plot);
-  }
-  
-  gnuplots.GenerateOutput (plotFile);
-  plotFile.close();
-  // produce clean valgrind
-  Simulator::Destroy ();
-  return 0;
+
+	gnuplots.GenerateOutput(plotFile);
+	plotFile.close();
+	// produce clean valgrind
+	Simulator::Destroy();
+	return 0;
 }
