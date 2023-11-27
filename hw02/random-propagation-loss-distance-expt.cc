@@ -1,4 +1,3 @@
-/* -*- Mode:C++; c-file-style:"gnu"; indent-tabs-mode:nil; -*- */
 /*
  * Copyright (c) 2012 Telum (www.telum.ru)
  *
@@ -16,32 +15,37 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
  * Author: Mahima Agumbe Suresh <mahima.as@tamu.edu>
+ *
+ * Modified by: Diego R Cruz
  */
 
-#include "ns3/propagation-loss-model.h"
-#include "ns3/propagation-cache.h"
-#include "ns3/constant-position-mobility-model.h"
-#include "ns3/config.h"
-#include "ns3/command-line.h"
-#include "ns3/string.h"
+#include "log-normal-shadowing-model.h"
+
 #include "ns3/boolean.h"
+#include "ns3/command-line.h"
+#include "ns3/config.h"
+#include "ns3/constant-position-mobility-model.h"
 #include "ns3/double.h"
-#include "ns3/pointer.h"
 #include "ns3/gnuplot.h"
-#include "ns3/simulator.h"
 #include "ns3/log.h"
 #include "ns3/mobility-model.h"
+#include "ns3/pointer.h"
+#include "ns3/propagation-cache.h"
+#include "ns3/propagation-loss-model.h"
 #include "ns3/rng-seed-manager.h"
+#include "ns3/simulator.h"
+#include "ns3/string.h"
 
-#include <map>
-#include <fstream>
 #include <cmath>
+#include <fstream>
+#include <map>
 
 using namespace ns3;
 
-/// Round a double number to the given precision. e.g. dround(0.234, 0.1) = 0.2
-/// and dround(0.257, 0.1) = 0.3
-static double dround(double number, double precision)
+/// Round a double number to the given number of decimal places/sig-figs
+/// e.g. dround(0.69420, 0.1) => 0.7
+static double
+dround(double number, double precision)
 {
 	number /= precision;
 	if (number >= 0)
@@ -88,8 +92,7 @@ TestProbabilistic(Ptr<PropagationLossModel> model, double distance, unsigned int
 		Simulator::Run();
 	}
 
-	for (rxPowerMapType::const_iterator i = rxPowerMap.begin();
-		 i != rxPowerMap.end(); ++i)
+	for (rxPowerMapType::const_iterator i = rxPowerMap.begin(); i != rxPowerMap.end(); ++i)
 	{
 		dataset.Add(i->first, (double)i->second / (double)samples);
 	}
@@ -106,7 +109,7 @@ int main(int argc, char *argv[])
 	// Set the random seed value
 	RngSeedManager::SetSeed(3);
 
-	GnuplotCollection gnuplots("rxPower-pdf-random.pdf");
+	GnuplotCollection gnuplots("hw2-task02-lp01.pdf");
 
 	{
 		Gnuplot plot;
@@ -114,11 +117,12 @@ int main(int argc, char *argv[])
 		plot.AppendExtra("set ylabel 'Probability'");
 		plot.AppendExtra("set key outside");
 
-		// Random propagation model with uniform random distribution
-		Ptr<RandomPropagationLossModel> randomProp = CreateObject<RandomPropagationLossModel>();
-		randomProp->SetAttribute("Variable", StringValue("ns3::UniformRandomVariable[Min=20|Max=100]"));
+		// need to alter stuff here
+		Ptr<LogNormalShadowingModel> randomProp = CreateObject<LogNormalShadowingModel>();
+		randomProp->SetAttribute("Gauss",
+								 StringValue("ns3::NormalRandomVariable[Mean=0|Variance=2]"));
 
-		for (double distance = 50.0; distance <= 200.0; distance += 50.0)
+		for (double distance = 200.0; distance <= 500.0; distance += 50.0)
 		{
 			Gnuplot2dDataset dataset = TestProbabilistic(randomProp, distance);
 			// New dataset for each distance. Adds a line to the plot
@@ -128,7 +132,7 @@ int main(int argc, char *argv[])
 			plot.AddDataset(dataset);
 		}
 
-		plot.SetTitle("RandomPropagationLossModel");
+		plot.SetTitle("LogNormalShadowingModel");
 		gnuplots.AddPlot(plot);
 	}
 
