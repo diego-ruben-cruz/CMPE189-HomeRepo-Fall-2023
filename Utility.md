@@ -2,7 +2,7 @@
 
 ## Useful Commands
 
-Here is a useful set of commands to quickly clean ns3 and build it anew:
+Here is a useful set of commands to quickly clean ns3 and build it anew, run them one at a time:
 
 ```cmd
 ./ns3 clean
