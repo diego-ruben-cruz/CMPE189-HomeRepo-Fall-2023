@@ -2,8 +2,9 @@
 #define LOG_NORMAL_SHADOWING_MODEL_H
 
 #include "ns3/object.h"
-#include "ns3/random-variable-stream.h"
 #include "ns3/propagation-loss-model.h"
+#include "ns3/random-variable-stream.h"
+
 #include <map>
 
 namespace ns3
@@ -34,12 +35,14 @@ namespace ns3
         double m_refLoss;          // Path loss at reference distance
         Ptr<RandomVariableStream> m_gaussRandomVariable;
 
-        double DoCalcRxPower(double txPowerDbm, Ptr<MobilityModel> a, Ptr<MobilityModel> b) const override;
+        double DoCalcRxPower(double txPowerDbm,
+                             Ptr<MobilityModel> a,
+                             Ptr<MobilityModel> b) const override;
 
         int64_t DoAssignStreams(int64_t stream) override;
 
         // Creates a default reference path loss/distance in case they are not provided
         static Ptr<PropagationLossModel> CreateDefaultReference();
     };
-}
+} // namespace ns3
 #endif

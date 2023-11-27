@@ -1,5 +1,5 @@
 /**
- * Author:
+ * Author: Diego R Cruz
  *
  */
 
@@ -16,8 +16,8 @@
 
 #include <cmath>
 
-using namespace ns3;
-
+namespace ns3
+{
 NS_LOG_COMPONENT_DEFINE("LogNormalShadowingModel");
 
 // Making implementation for the previously-created class, still using propagation-loss-model.cc
@@ -33,7 +33,7 @@ LogNormalShadowingModel::GetTypeId()
             .AddConstructor<LogNormalShadowingModel>()
             .AddAttribute("pathLossExponent",
                           "The exponent of the Path Loss propagation model",
-                          DoubleValue(2.5),
+                          DoubleValue(2.5), // hard-coded to 2.5 for this hw assignment
                           MakeDoubleAccessor(&LogNormalShadowingModel::m_pathLossExponent),
                           MakeDoubleChecker<double>())
             .AddAttribute("refDistance",
@@ -60,12 +60,14 @@ LogNormalShadowingModel::LogNormalShadowingModel()
 {
 }
 
-void LogNormalShadowingModel::SetPathLossExponent(double n)
+void
+LogNormalShadowingModel::SetPathLossExponent(double n)
 {
     m_pathLossExponent = n;
 }
 
-void LogNormalShadowingModel::SetReference(double referenceDistance, double referenceLoss)
+void
+LogNormalShadowingModel::SetReference(double referenceDistance, double referenceLoss)
 {
     m_refDistance = referenceDistance;
     m_refLoss = referenceLoss;
@@ -110,4 +112,5 @@ LogNormalShadowingModel::DoCalcRxPower(double txPowerDbm,
     NS_LOG_DEBUG("distance=" << distance << "m, reference-attenuation=" << -m_refLoss << "dB, "
                              << "attenuation coefficient=" << receivedPower << "db");
     return txPowerDbm + receivedPower + gaussLoss;
+}
 }
