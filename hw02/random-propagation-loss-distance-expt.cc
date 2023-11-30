@@ -19,7 +19,8 @@
  * Modified by: Diego R Cruz
  */
 
-#include "ns3/log-normal-shadowing-model.h"
+#include "../src/propagation/model/log-normal-shadowing-model.h"
+
 #include "ns3/boolean.h"
 #include "ns3/command-line.h"
 #include "ns3/config.h"
