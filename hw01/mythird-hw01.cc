@@ -167,7 +167,7 @@ int main(int argc, char *argv[])
     csmaInterfaces = address.Assign(csmaDevices);
 
     address.SetBase("10.1.3.0", "255.255.255.0");
-    Ipv4InterfaceContainer staInterfaces; // Useful to retrieve the address of the
+    Ipv4InterfaceContainer staInterfaces; // Useful to retrieve the address of the station devices
     staInterfaces = address.Assign(staDevices);
     address.Assign(apDevices);
 
