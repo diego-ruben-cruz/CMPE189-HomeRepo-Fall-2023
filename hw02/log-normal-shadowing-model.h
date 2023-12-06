@@ -1,9 +1,19 @@
+/**
+ * Author: Diego R Cruz
+ *
+ * Place this onto the model folder in ns3
+ * ns-allinone-3.39/ns-3.39/src/propagation/model/
+ *
+ * Don't forget to edit the Cmake list txt under the same folder:
+ * ns-allinone-3.39/ns-3.39/src/propagation/CMakeLists.txt
+ */
+
 #ifndef LOG_NORMAL_SHADOWING_MODEL_H
 #define LOG_NORMAL_SHADOWING_MODEL_H
 
 #include "ns3/object.h"
-#include "ns3/propagation-loss-model.h"
 #include "ns3/random-variable-stream.h"
+#include "ns3/propagation-loss-model.h"
 
 #include <map>
 

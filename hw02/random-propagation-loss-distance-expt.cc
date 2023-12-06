@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	// Set the random seed value
 	RngSeedManager::SetSeed(3);
 
-	GnuplotCollection gnuplots("hw2-task02-lp01.pdf");
+	GnuplotCollection gnuplots("hw2-task02-hp03.pdf"); // change filename as needed for different components of hw02
 
 	{
 		Gnuplot plot;
@@ -119,10 +119,15 @@ int main(int argc, char *argv[])
 
 		// need to alter stuff here
 		Ptr<LogNormalShadowingModel> randomProp = CreateObject<LogNormalShadowingModel>();
-		randomProp->SetAttribute("Gauss",
-								 StringValue("ns3::NormalRandomVariable[Mean=0|Variance=2]"));
+		randomProp->SetAttribute(
+			"gaussRandomVar",
+			StringValue(
+				"ns3::NormalRandomVariable[Mean=0|Variance=2]")); // modify mean and variance for
+																  // task02 hp02
+		randomProp->SetPathLossExponent(3);						  // Modify for task02 hp02
 
-		for (double distance = 200.0; distance <= 500.0; distance += 50.0)
+		for (double distance = 200.0; distance <= 400.0;
+			 distance += 50.0) // modify upper bound between LP and HP
 		{
 			Gnuplot2dDataset dataset = TestProbabilistic(randomProp, distance);
 			// New dataset for each distance. Adds a line to the plot
