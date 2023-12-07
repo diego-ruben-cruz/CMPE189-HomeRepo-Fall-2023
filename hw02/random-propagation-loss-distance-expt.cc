@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 	// Set the random seed value
 	RngSeedManager::SetSeed(3);
 
-	GnuplotCollection gnuplots("hw2-task02-hp03.pdf"); // change filename as needed for different components of hw02
+	GnuplotCollection gnuplots("hw2-task02-hp03.pdf"); // Change as needed for different parts for task02
 
 	{
 		Gnuplot plot;
