@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
 
     // Make a duplicate echo client as per task02 hp01
     // Note that 9 is the port number, not the number corresponding to the node, refer to Doxygen
-    UdpEchoClientHelper echoClient2(csmaInterfaces.GetAddress(nCsma), 9);
+    UdpEchoClientHelper echoClient2(csmaInterfaces.GetAddress(nCsma), 10);
     echoClient2.SetAttribute("MaxPackets", UintegerValue(1));
     echoClient2.SetAttribute("Interval", TimeValue(Seconds(1.0)));
     echoClient2.SetAttribute("PacketSize", UintegerValue(1024));
